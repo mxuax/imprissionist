@@ -1,0 +1,69 @@
+void PaintView::paint_auto() 
+{
+	if (!m_pDoc->m_ucPainting && !m_pDoc->m_ucBitmap) {
+		return;
+	}
+	#ifndef MESA
+	// To avoid flicker on some machines.
+	glDrawBuffer(GL_FRONT_AND_BACK);
+	#endif // !MESA
+	if (!valid())
+	{
+
+		glClearColor(0.7f, 0.7f, 0.7f, 1.0);
+		// We're only using 2-D, so turn off depth 
+		glDisable(GL_DEPTH_TEST);
+		ortho();
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
+	int drawWidth, drawHeight;
+	drawWidth = min(m_nWindowWidth, m_pDoc->m_nPaintWidth);
+	drawHeight = min(m_nWindowHeight, m_pDoc->m_nPaintHeight);
+	int size = m_pDoc->getSize();
+	vector<int> points_x; //define a x array
+	vector<int> points_y;
+	if (m_pDoc->m_ucPainting) {
+		int i = 0;
+		for (int x = 0; x < drawWidth; x = x + size / 2 + 1) {
+			for (int y = 0; y < drawHeight; y = y + size / 2 + 1, i = i + 1) {
+				
+				/*int a[2] = new int[];
+				obj.push_back();*/
+				points_x.push_back(x);
+				points_y.push_back(y);
+				/*points[++i] = source;
+				points[++i] = target;*/
+				
+			}
+		}
+		for (; i > 0; i = i - 1) {
+			int key = 0;
+			if (i >= 1) {
+				key = rand() % (i);
+			}
+			int x = points_x[key];
+			int y = points_y[key];
+
+			Point source(x + (rand() % (size / 2 + 1)) + m_nStartCol, m_nEndRow - y - (rand() % (size / 2 + 1)));
+			Point target(x + (rand() % (size / 2 + 1)), m_nWindowHeight - y - (rand() % (size / 2 + 1)));
+			
+			m_pDoc->m_pUI->setSize_Direct(size - size / 6 + (rand() % (size / 3 + 1)));
+			m_pDoc->m_pCurrentBrush->BrushBegin(source, target);
+			m_pDoc->m_pCurrentBrush->BrushMove(source, target);
+			m_pDoc->m_pCurrentBrush->BrushEnd(source, target);
+
+			points_x[key] = points_x[i - 1];
+			points_y[key] = points_y[i - 1];
+
+			points_x.pop_back();
+			points_y.pop_back();
+		}
+
+		SaveCurrentContent();
+		RestoreContent();
+	}
+	/*draw();*/
+	m_pDoc->m_pUI->setSize_Direct(size);
+	m_pDoc->m_pUI->m_origView->refresh();
+	refresh();
+}
